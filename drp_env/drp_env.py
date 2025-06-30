@@ -1,5 +1,6 @@
 import gym
 import numpy as np
+import networkx as nx
 import sys
 import copy
 import os
