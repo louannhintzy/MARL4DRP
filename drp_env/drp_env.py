@@ -89,14 +89,14 @@ class DrpEnv(gym.Env):
 		# if goal and start are not assigned, randomly generate every episode    
 		self.start_ori_array = copy.deepcopy(self.ee_env.input_start_ori_array)
 		self.goal_array = copy.deepcopy(self.ee_env.input_goal_array)
-		print("self.start_ori_array", self.start_ori_array)
+		#print("self.start_ori_array", self.start_ori_array)
 		if self.start_ori_array == []:
 			self.ee_env.random_start()
 			self.start_ori_array = self.ee_env.start_ori_array
 		if self.goal_array == []:
 			self.ee_env.random_goal()
 			self.goal_array = self.ee_env.goal_array
-		print("self.start_ori_array after", self.start_ori_array)
+		#print("self.start_ori_array after", self.start_ori_array)
 
 		#initialize obs
 		self.obs = tuple(np.array([self.pos[self.start_ori_array[i]][0], self.pos[self.start_ori_array[i]][1], self.start_ori_array[i], self.goal_array[i]]) for i in range(self.agent_num))
@@ -119,7 +119,7 @@ class DrpEnv(gym.Env):
 		self.reach_account = 0
 		self.step_account = 0
 		self.episode_account += 1
-		print('Environment reset obs: \n', self.obs)
+		#print('Environment reset obs: \n', self.obs)
 
 		obs = self.obs_manager.calc_obs()
 
@@ -127,6 +127,10 @@ class DrpEnv(gym.Env):
 		
 
 	def step(self, joint_action):
+
+		#new policy : rule-based and RL
+		joint_action = self.action_policy(joint_action)
+
 		#transite env based on joint_action
 		self.step_account += 1
 		self.obs_current_chache = copy.deepcopy(self.obs)
@@ -240,7 +244,7 @@ class DrpEnv(gym.Env):
 				ri_array.append(ri)
 			
 			if self.terminated == [True for _ in range(self.agent_num)]: # all reach goal
-				print("!!!all reach goal!!!")
+				#print("!!!all reach goal!!!")
 				self.reach_account = 0
 				# info
 				info["goal"] = True
@@ -252,7 +256,7 @@ class DrpEnv(gym.Env):
 
 		# Check whether time is over
 		if self.step_account >= self.time_limit:
-			print("!!!time up!!!")
+			#print("!!!time up!!!")
 			info["timeup"]= True
 			self.terminated = [True for _ in range(self.agent_num)]
 
@@ -317,3 +321,30 @@ class DrpEnv(gym.Env):
 			pos_list.append(pos)
 
 		return pos_list
+	
+
+	def probability_rule_based(self):
+		x = self.episode_account
+		p = 1 + (-np.log(1 + x)) / np.log(2050000)
+		return np.random.rand() < p
+
+
+	def shortest_path_action(self):
+		actions = []
+		for i in range(self.agent_num):
+			current = self.current_start[i]
+			goal = self.goal_array[i]
+			try:
+				path = nx.shortest_path(self.G, source=current, target=goal)
+				next_node = path[1] if len(path) > 1 else current
+			except nx.NetworkXNoPath:
+				next_node = current
+			actions.append(next_node)
+		return actions
+
+
+	def action_policy(self, joint_action):
+		if self.probability_rule_based():
+			return self.shortest_path_action()
+		else:
+			return joint_action

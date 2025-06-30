@@ -13,7 +13,7 @@ MAP_PARENT_DIR = "./map/"
 class MapMake():
 
 	def __init__(self, agent_num, start_ori_array, goal_array, map_name):
-		print('MapMake initialized')
+		#print('MapMake initialized')
 		self.agent_num = agent_num
 
 		base_nodes = [0,2]
@@ -242,7 +242,7 @@ class MapMake():
 
 				if distance_ij<5:
 					collision_flag = 1
-					print('!!!collision!!! with agent',i,j)
+					#print('!!!collision!!! with agent',i,j)
 		
 		return collision_flag
 """
