@@ -22,6 +22,7 @@ class DrpEnv(gym.Env):
 			collision,
 			map_name="map_3x3",
 			reward_list={"goal": 100, "collision": -10, "wait": -10, "move": -1},
+			**kwargs
 		  ):
 		self.agent_num = agent_num
 		self.n_agents = agent_num # for epymarl
@@ -31,6 +32,9 @@ class DrpEnv(gym.Env):
 		self.visu_delay = visu_delay
 		self.start_ori_array = start_ori_array
 		self.goal_array = goal_array
+
+		#rajout
+		self.t_max = kwargs.get("t_max", 1000000)
 
 		# reward
 		self.r_goal = reward_list["goal"]
@@ -326,7 +330,7 @@ class DrpEnv(gym.Env):
 
 	def probability_rule_based(self):
 		x = self.episode_account
-		p = 1 + (-np.log(1 + x)) / np.log(2050000)
+		p = 1 + (-np.log(1 + x)) / np.log(self.t_max)
 		return np.random.rand() < p
 
 
