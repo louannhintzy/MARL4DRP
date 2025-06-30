@@ -330,7 +330,9 @@ class DrpEnv(gym.Env):
 
 	def probability_rule_based(self):
 		x = self.episode_account
-		p = 1 + (-np.log(1 + x)) / np.log(self.t_max)
+		C = 1e4
+		#p = 1 + (-np.log(1 + x)) / np.log(self.t_max)
+		p = 0.9 / np.sqrt(1 + x / C)
 		return np.random.rand() < p
 
 
